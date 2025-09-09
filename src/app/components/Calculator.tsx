@@ -30,36 +30,12 @@ export default function Calculator() {
     document.documentElement.classList.toggle('dark', darkMode);
   }, []);
 
-  // 키보드 이벤트 핸들러
-  const handleKeyPress = useCallback((event: KeyboardEvent) => {
-    const { key } = event;
-    
-    if (key >= '0' && key <= '9') {
-      handleNumberClick(key);
-    } else if (key === '.') {
-      handleDecimalClick();
-    } else if (['+', '-', '*', '/'].includes(key)) {
-      handleOperatorClick(key === '*' ? '×' : key === '/' ? '÷' : key);
-    } else if (key === 'Enter' || key === '=') {
-      handleEqualsClick();
-    } else if (key === 'Escape' || key.toLowerCase() === 'c') {
-      handleClearClick();
-    } else if (key === 'Backspace') {
-      handleBackspaceClick();
-    }
-  }, []);
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [handleKeyPress]);
-
   // 사운드 재생 함수
   const playSound = (frequency: number, duration: number = 100) => {
     if (!soundEnabled) return;
     
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const audioContext = new (window.AudioContext || (window as typeof window & { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
       
@@ -74,7 +50,7 @@ export default function Calculator() {
       
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + duration / 1000);
-    } catch (error) {
+    } catch {
       // 오디오 컨텍스트를 지원하지 않는 브라우저에서는 무시
     }
   };
@@ -300,6 +276,30 @@ export default function Calculator() {
     playSound(200);
     setHistory([]);
   };
+
+  // 키보드 이벤트 핸들러
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      const { key } = event;
+      
+      if (key >= '0' && key <= '9') {
+        handleNumberClick(key);
+      } else if (key === '.') {
+        handleDecimalClick();
+      } else if (['+', '-', '*', '/'].includes(key)) {
+        handleOperatorClick(key === '*' ? '×' : key === '/' ? '÷' : key);
+      } else if (key === 'Enter' || key === '=') {
+        handleEqualsClick();
+      } else if (key === 'Escape' || key.toLowerCase() === 'c') {
+        handleClearClick();
+      } else if (key === 'Backspace') {
+        handleBackspaceClick();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, []);
 
   const Button = ({ 
     children, 
